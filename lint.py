@@ -1,2 +1,4 @@
-while True:
-    print("a", end='')
+import pandas as pd
+
+
+pd.read_csv
