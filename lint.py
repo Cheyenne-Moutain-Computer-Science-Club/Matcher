@@ -1,4 +1,6 @@
 import pandas as pd
 
 
-pd.read_csv
+df = pd.read_csv("sampleset.csv.csv")
+
+for x in df
