@@ -1,7 +1,6 @@
-import os
-import pandas
-from lint import profiles
+class Graph(Main):
+    def __init__(self):
+        Main.super()
 
-def generate_coords(profile, dataset):
-    for id, data in profiles:
+    def create_coordinates(self, id):
         pass
