@@ -1,1 +1,1 @@
-from 
+def compile()
