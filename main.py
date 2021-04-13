@@ -20,7 +20,7 @@ class Main():
 
 class Lint(Main):
     def __init__(self, convertions):
-        Main.super()
+        super().__init__()
         self.convertions = convertions
 
     def convert(self, key):
@@ -51,7 +51,7 @@ class Lint(Main):
 
 class Graph(Main):
     def __init__(self):
-        Main.super()
+        super().__init__()
 
     def create_coordinates(self, id):
         pass
@@ -59,7 +59,7 @@ class Graph(Main):
 
 class Distance(Main):
     def __init__(self):
-        Main.super()
+        super().__init__()
         self.in_range = []
         self.range = [0,0]
         self.apothem = 0
@@ -81,12 +81,12 @@ class Compile(Main):
         pass
 
 
-class MailMerge(Main):
-    def __init__(self):
-        pass
+# class MailMerge(Main):
+#     def __init__(self):
+#         pass
 
 
-class GUI():
+class GUI(Main):
     def __init__(self):
         # Sets up the main window
         self.root = ThemedTk(theme="arc")
@@ -97,51 +97,61 @@ class GUI():
 
         self.menu = ttk.Frame(self.tab_control)
         self.log = ttk.Frame(self.tab_control)
+        self.output = ttk.Frame(self.tab_control)
 
-        self.tab_control.add(self.menu, text="Add Menu")
+        self.tab_control.add(self.menu, text="Import Values")
         self.tab_control.add(self.log, text="Log")
+        self.tab_control.add(self.output, text="Output")
 
         self.tab_control.pack(expand=1, fill="both")
 
-        # Gathering the needed info
+
         self.test = ttk.Label(self.log, text="TEST!!!")
-        self.textbox = ttk.Frame(self.menu)
-        self.textbox.pack()
-        self.name_label = ttk.Label(self.textbox, text="Name your Head:")
-        self.name_label.pack(side="left")
-        self.name_text = ttk.Entry(self.textbox, width=50)
-        self.name_text.pack(side="left")
+        # self.textbox = ttk.Frame(self.menu)
+        # self.textbox.pack()
+        # self.name_label = ttk.Label(self.textbox, text="Name your Head:")
+        # self.name_label.pack(side="left")
+        # self.name_text = ttk.Entry(self.textbox, width=50)
+        # self.name_text.pack(side="left")
+        #
+        # self.idbox = ttk.Frame(self.menu)
+        # self.idbox.pack()
+        # self.id_label = ttk.Label(self.idbox, text="Head id:")
+        # self.id_label.pack(side="left")
+        # self.id_text = ttk.Entry(self.idbox, width=50)
+        # self.id_text.pack(side="left")
 
-        self.idbox = ttk.Frame(self.menu)
-        self.idbox.pack()
-        self.id_label = ttk.Label(self.idbox, text="Head id:")
-        self.id_label.pack(side="left")
-        self.id_text = ttk.Entry(self.idbox, width=50)
-        self.id_text.pack(side="left")
+        self.file_open_inputs = ttk.Frame(self.menu)
+        self.file_open_inputs.pack()
+        self.file_open_inputs_button = ttk.Button(self.file_open_inputs, command=self.set_inputs, text="Select Responses CSV")
+        self.file_open_inputs_button.pack()
 
-        self.file_open_item = ttk.Frame(self.menu)
-        self.file_open_item.pack()
-        self.file_open_item_button = ttk.Button(self.file_open_item, command=self.set_item, text="Pick Item Art")
-        self.file_open_item_button.pack()
+        self.paid = ttk.Frame(self.menu)
+        self.paid.pack()
+        self.paid_text = ttk.Label(self.paid, text="Paid List Settings:")
+        self.paid_text.pack(side='top')
+        self.paid_active = tk.IntVar()
+        self.pay_checkbox = ttk.Checkbutton(self.paid, text="Use Paid List?", variable=self.paid_active)
+        self.pay_checkbox.pack(side='left')
+        # self.file_open_model = ttk.Frame(self.paid)
+        # self.file_open_model.pack()
+        self.file_open_button_model = ttk.Button(self.paid, command=self.set_paid, text="Select Paid List CSV")
+        self.file_open_button_model.pack(side='right')
 
-        self.file_open_model = ttk.Frame(self.menu)
-        self.file_open_model.pack()
-        self.file_open_button_model = ttk.Button(self.file_open_model, command=self.set_model, text="Pick Model Art")
-        self.file_open_button_model.pack()
+        # self.catagories = ['Please select a category', 'concrete', 'dim', 'dirt', 'logs', 'misc', 'natural', 'ores', 'redstone', 'stone', 'terracotta', 'utility', 'water', 'wool', 'mob']
+        # self.display_catagories = ['Please select a category', 'Concrete', 'Dimensions', 'Dirt', 'Logs', 'Miscellaneous', 'Natural', 'Ores', 'Redstone', 'Stone', 'Terracotta', 'Utility', 'Water', 'Wool', 'Mob']
+        # self.var = tk.StringVar(self.menu)
+        # self.var.set("Please select a category")
+        # self.option = ttk.OptionMenu(self.menu, self.var, *self.display_catagories)
+        # self.option.pack(side=tk.LEFT)
 
-        self.catagories = ['Please select a category', 'concrete', 'dim', 'dirt', 'logs', 'misc', 'natural', 'ores', 'redstone', 'stone', 'terracotta', 'utility', 'water', 'wool', 'mob']
-        self.display_catagories = ['Please select a category', 'Concrete', 'Dimensions', 'Dirt', 'Logs', 'Miscellaneous', 'Natural', 'Ores', 'Redstone', 'Stone', 'Terracotta', 'Utility', 'Water', 'Wool', 'Mob']
-        self.var = tk.StringVar(self.menu)
-        self.var.set("Please select a category")
-        self.option = ttk.OptionMenu(self.menu, self.var, *self.display_catagories)
-        self.option.pack(side=tk.LEFT)
-
-        self.start_button = ttk.Button(self.menu, text='Add Head', command=self.start)
+        self.start_button = ttk.Button(self.menu, text='Run', command=self.start)
         self.start_button.pack(side= tk.RIGHT)
 
         self.root.mainloop()
 
     def start(self):
+        # super().__init__()
         self.name = self.name_text.get()
         self.id = self.id_text.get()
         self.catagory = self.catagories[self.display_catagories.index(self.var.get())]
@@ -173,7 +183,7 @@ class GUI():
 
 
     # setters for the filepaths
-    def set_item(self):
+    def set_inputs(self):
         if self.item != None:
             self.file_label_item.destroy()
             self.file_label_item_image.destroy()
@@ -186,7 +196,7 @@ class GUI():
         self.file_label_item_image.pack(side="bottom")
 
 
-    def set_model(self):
+    def set_paid(self):
         self.model = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("png files","*.png"),("all files", "*.*")))
         self.render_model = ImageTk.PhotoImage(Image.open(self.model).resize((64,32)))
         self.file_label_model = ttk.Label(self.file_open_model, text=self.model)
