@@ -27,25 +27,25 @@ class Lint(Main):
         convert = []
 
         for index, row in Main.inputs.iterrows():
-            if convertions.key[0] == row[key]:
+            if self.convertions[key][0] == row[key]:
                 convert.append(0)
-            elif convertions.key[1] == row[key]:
+            elif self.convertions[key][1] == row[key]:
                 convert.append(1)
-            elif convertions.key[2] == row[key]:
+            elif self.convertions[key][2] == row[key]:
                 convert.append(2)
-            elif convertions.key[3] == row[key]:
+            elif self.convertions[key][3] == row[key]:
                 convert.append(3)
             else:
                 raise TypeError
 
-        inputs[key] = convert
+        Main.inputs[key] = convert
 
     def create_profiles(self):
         for index, row in Main.inputs.iterrows():
-            profiles[index] = {
+            Main.profiles[index] = {
                 'id': index,
                 'coords': [],
-                'matchs': []
+                'matches': []
             }
 
 
@@ -62,38 +62,66 @@ class Distance(Main):
         super().__init__()
         self.in_range = []
         self.range = [0,0]
-        self.apothem = 0
+        self.apothem = 15
 
     def calc_distance(self, id1, id2):
         return ((Main.profiles[id1]['coords'][0] + Main.profiles[id2]['coords'][0])**2 + (Main.profiles[id1]['coords'][1] + Main.profiles[id2]['coords'][1])**2) **(1/2)
 
+    # TODO: Write Harry's Function
     def get_people(self, id):
-        # Get coords from id
-        # Go through dict and if in range, add to self.in_range
-        # If self.in_range.length() < 5, do over again with larger apothem
-        # Else, grab five random people from that range and order by distance
-        # Append this array to profile from id
-        pass
+        for key, prof1 in Main.profiles.items():
+            apothem = 15
+            people = self.in_range()
+            while len(people) < 7:
+                apothem += 3
+                people = self.in_range()
+        Main.profile[key]['matchs'] = people
 
+            
+    
+    def in_range(self):
+        people = []
+        for key, prof in self.profiles.items():
+            if ((self.profiles[di]['coords'][0] - self.apothem) < prof['coords'][0] < (self.profiles[di]['coords'][0] + self.apothem)) and ((self.profiles[di]['coords'][1] - self.apothem) < prof['coords'][1] < (self.profiles[di]['coords'][1] + self.apothem)):
+                people.append(key)
+        return people
 
+# TODO: Write Compilation script
 class Compile(Main):
     def __init__(self):
         pass
 
+    # TODO: Generate output CSV
+    def generate_output(self):
+        pass
 
+# ! Should separate in case of errors
 # class MailMerge(Main):
 #     def __init__(self):
 #         pass
 
-
+# TODO: Update GUI from heads
 class GUI(Main):
     def __init__(self):
+        # tk.Tk.__init__(self, *args, **kwargs)
         # Sets up the main window
         self.root = ThemedTk(theme="arc")
         self.root.title('DECA Project')
         self.root.geometry('650x300')
         # self.root.iconbitmap(r'')
         self.tab_control = ttk.Notebook(self.root)
+
+        # self.grid_rowconfigure(0, weight=1) # this needed to be added
+        # self.grid_columnconfigure(0, weight=1) # as did this
+
+        # self.columnconfigure(0, weight = 1)
+        # self.rowconfigure(0, weight = 1)
+        # self.rowconfigure(1, weight = 1)
+        # self.rowconfigure(2, weight = 1)
+        # self.rowconfigure(3, weight = 1)
+
+        self.root.columnconfigure(2, weight=1)
+        self.root.rowconfigure(3, weight=1)
 
         self.menu = ttk.Frame(self.tab_control)
         self.log = ttk.Frame(self.tab_control)
@@ -103,7 +131,8 @@ class GUI(Main):
         self.tab_control.add(self.log, text="Log")
         self.tab_control.add(self.output, text="Output")
 
-        self.tab_control.pack(expand=1, fill="both")
+        # self.tab_control.pack(expand=1, fill="both")
+        self.tab_control.grid(column = 1, row = 1, columnspan = 10, sticky = tk.N)
 
 
         self.test = ttk.Label(self.log, text="TEST!!!")
@@ -122,21 +151,37 @@ class GUI(Main):
         # self.id_text.pack(side="left")
 
         self.file_open_inputs = ttk.Frame(self.menu)
-        self.file_open_inputs.pack()
+        # self.file_open_inputs.pack()
+        self.paid_text = ttk.Label(self.file_open_inputs, text="Input List Settings:")
+        # self.paid_text.pack(side='top')
+        self.paid_text.grid(row=1, column=2, sticky=tk.N)
+        self.input_spacer = ttk.Label(self.file_open_inputs, text="")
+        self.input_spacer.grid(row=2, column=2)
+        self.file_open_inputs.grid(row=3, column=2, sticky='n')
         self.file_open_inputs_button = ttk.Button(self.file_open_inputs, command=self.set_inputs, text="Select Responses CSV")
-        self.file_open_inputs_button.pack()
+        # self.file_open_inputs_button.pack()
+        self.file_open_inputs_button.grid(row=3, column=2, sticky='n')
+
+        self.frame_spacer = ttk.Label(self.menu, text="")
+        self.frame_spacer.grid(row=6, column=2)
 
         self.paid = ttk.Frame(self.menu)
-        self.paid.pack()
+        # self.paid.pack()
+        self.paid.grid(row=7, column=2, sticky=tk.N)
         self.paid_text = ttk.Label(self.paid, text="Paid List Settings:")
-        self.paid_text.pack(side='top')
+        # self.paid_text.pack(side='top')
+        self.paid_text.grid(row=7, column=2)
         self.paid_active = tk.IntVar()
         self.pay_checkbox = ttk.Checkbutton(self.paid, text="Use Paid List?", variable=self.paid_active)
-        self.pay_checkbox.pack(side='left')
+        self.paid_spacer = ttk.Label(self.paid, text="")
+        self.paid_spacer.grid(row=8, column=2)
+        # self.pay_checkbox.pack(side='left')
+        self.pay_checkbox.grid(row=9, column=1)
         # self.file_open_model = ttk.Frame(self.paid)
         # self.file_open_model.pack()
         self.file_open_button_model = ttk.Button(self.paid, command=self.set_paid, text="Select Paid List CSV")
-        self.file_open_button_model.pack(side='right')
+        # self.file_open_button_model.pack(side='right')
+        self.file_open_button_model.grid(row=9, column=2)
 
         # self.catagories = ['Please select a category', 'concrete', 'dim', 'dirt', 'logs', 'misc', 'natural', 'ores', 'redstone', 'stone', 'terracotta', 'utility', 'water', 'wool', 'mob']
         # self.display_catagories = ['Please select a category', 'Concrete', 'Dimensions', 'Dirt', 'Logs', 'Miscellaneous', 'Natural', 'Ores', 'Redstone', 'Stone', 'Terracotta', 'Utility', 'Water', 'Wool', 'Mob']
@@ -146,7 +191,8 @@ class GUI(Main):
         # self.option.pack(side=tk.LEFT)
 
         self.start_button = ttk.Button(self.menu, text='Run', command=self.start)
-        self.start_button.pack(side= tk.RIGHT)
+        # self.start_button.pack(side= tk.RIGHT)
+        self.start_button.grid(row=10, column = 3)
 
         self.root.mainloop()
 
