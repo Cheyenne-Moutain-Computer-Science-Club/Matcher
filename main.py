@@ -70,16 +70,16 @@ class Distance(Main):
     # TODO: Write Harry's Function
     def get_people(self, id):
         for key, prof1 in Main.profiles.items():
-            apothem = 15
-            people = self.in_range()
+            self.apothem = 15
+            people = self.in_range(key)
             while len(people) < 7:
-                apothem += 3
-                people = self.in_range()
+                self.apothem += 3
+                people = self.in_range(key)
         Main.profile[key]['matchs'] = people
 
             
     
-    def in_range(self):
+    def in_range(self, di):
         people = []
         for key, prof in self.profiles.items():
             if ((self.profiles[di]['coords'][0] - self.apothem) < prof['coords'][0] < (self.profiles[di]['coords'][0] + self.apothem)) and ((self.profiles[di]['coords'][1] - self.apothem) < prof['coords'][1] < (self.profiles[di]['coords'][1] + self.apothem)):
