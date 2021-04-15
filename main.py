@@ -64,10 +64,6 @@ class Distance(Main):
         self.range = [0,0]
         self.apothem = 15
 
-    def calc_distance(self, id1, id2):
-        return ((Main.profiles[id1]['coords'][0] + Main.profiles[id2]['coords'][0])**2 + (Main.profiles[id1]['coords'][1] + Main.profiles[id2]['coords'][1])**2) **(1/2)
-
-    # TODO: Write Harry's Function
     def get_people(self, id):
         for key, prof1 in Main.profiles.items():
             self.apothem = 15
@@ -77,13 +73,17 @@ class Distance(Main):
                 people = self.in_range(key)
         Main.profile[key]['matchs'] = people
 
-            
-    
     def in_range(self, di):
         people = []
-        for key, prof in self.profiles.items():
-            if ((self.profiles[di]['coords'][0] - self.apothem) < prof['coords'][0] < (self.profiles[di]['coords'][0] + self.apothem)) and ((self.profiles[di]['coords'][1] - self.apothem) < prof['coords'][1] < (self.profiles[di]['coords'][1] + self.apothem)):
-                people.append(key)
+        dist = []
+        for key, prof in Main.profiles.items():
+            if ((Main.profiles[di]['coords'][0] - self.apothem) < prof['coords'][0] < (Main.profiles[di]['coords'][0] + self.apothem)) and ((Main.profiles[di]['coords'][1] - self.apothem) < prof['coords'][1] < (Main.profiles[di]['coords'][1] + self.apothem)):
+                if key == di:
+                    pass
+                else:
+                    dist.append(((Main.profiles[di]['coords'][0] + Main.profiles[key]['coords'][0])**2 + (Main.profiles[di]['coords'][1] + Main.profiles[key]['coords'][1])**2) **(1/2))
+                    people.append(key)
+        dist, people = zip(*sorted(zip(dist, people)))
         return people
 
 # TODO: Write Compilation script
@@ -95,10 +95,6 @@ class Compile(Main):
     def generate_output(self):
         pass
 
-# ! Should separate in case of errors
-# class MailMerge(Main):
-#     def __init__(self):
-#         pass
 
 # TODO: Update GUI from heads
 class GUI(Main):
