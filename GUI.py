@@ -1,3 +1,6 @@
+# =====================
+# Package imports
+# =====================
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
@@ -5,15 +8,27 @@ from tkinter import font
 from ttkthemes import ThemedTk
 from PIL import Image, ImageTk
 import tkinter as tk
+# =====================
+# Module imports
+# =====================
+from main import Main
+# =====================
+# Script
+# =====================
 
-
-class GUI():
+class GUI(Main):
     def __init__(self):
+        # ============================
         # Setup
-        self.root = ThemedTk(theme="arc")
-        self.root.title('DECA Project')
-        self.root.geometry('650x500')
-        self.root.resizable(False, False)
+        # ============================
+        # self.root = ThemedTk(theme="arc")
+        self.root = ThemedTk(theme="breeze")
+        # self.root = ThemedTk(theme="equilux")
+        self.root.title('Matcher')
+        self.root.geometry('650x550')
+        self.root.resizable(False, True)
+        self.style = ttk.Style(self.root)
+        # self.root.configure(bg='#464646')
 
         # IntVar setup
         self.use_tsv_inputs = tk.IntVar()
@@ -21,17 +36,16 @@ class GUI():
         self.use_paid_list = tk.BooleanVar()
         self.only_include_paid = tk.BooleanVar()
         self.output_option = tk.StringVar()
+        self.scale_x_enabled = tk.BooleanVar()
+        self.scale_y_enabled = tk.BooleanVar()
+        self.scale_y_enabled.set(True)
+        self.theme_selection = tk.StringVar()
 
         # *Maybe Change to Main????
         # Other variable setup
         self.inputs_path = None
         self.paid_path = None
         self.output_path = None
-
-        # Grid setup
-        self.root.columnconfigure(0, weight=1)
-        self.root.columnconfigure(1, weight=2)
-        self.root.columnconfigure(2, weight=1)
 
         # Tab control
         self.tab_control = ttk.Notebook(self.root, width = 650)
@@ -47,6 +61,10 @@ class GUI():
         self.tab_control.add(self.output, text="Output")
 
         self.tab_control.pack()
+
+        # ============================
+        # Main Menu
+        # ============================
 
         # Inputs CSV
         self.inputs = ttk.Frame(self.menu)
@@ -134,7 +152,6 @@ class GUI():
         self.output_breadcrumbs = ttk.Frame(self.output)
         self.output_breadcrumbs.pack()
         # Dropdown
-        self.catagories = ['Please select an output format', 'csv', 'tsv', 'txt']
         self.display_catagories = ['Please select an output format', 'Comma Seperated Values (*.csv)', 'Tab Seperated Values (*.tsv)', 'Text File (*.txt)']
         self.output_option.set("Please select an output format")
         self.option = ttk.OptionMenu(self.output, self.output_option, *self.display_catagories)
@@ -144,25 +161,60 @@ class GUI():
         # Seperator
         self.seperator3 = ttk.Separator(self.menu, orient='horizontal')
         self.seperator3.pack(fill='x')
+
+        # Run
+        self.start_button = ttk.Button(self.menu, text='Run', command=self.start)
+        self.start_button.pack(pady=10)
+
+        # ============================
+        # Advanced Menu
+        # ============================
         
+        # Appearance Menu
+        self.appearance = ttk.Frame(self.options)
+        self.appearance.pack()
+        self.appearance_label = ttk.Label(self.appearance, text="Appearance Options", font= ("Microsoft JhengHei UI", 12))
+        self.appearance_label.pack(pady=5)
+        # Scale checkboxes
+        self.scale_x = ttk.Checkbutton(self.appearance,
+                                                text="Allow X Scaling", 
+                                                variable=self.scale_x_enabled,
+                                                command=self.update_appearance)
+        self.scale_y = ttk.Checkbutton(self.appearance,
+                                                text="Allow Y Scaling", 
+                                                variable=self.scale_y_enabled,
+                                                command=self.update_appearance)
+        self.scale_x.pack()
+        self.scale_y.pack()
+        # Theme dropdown
+        self.display_themes = ["",'Breeze', 'Adapta', 'Arc', 'Equilux']
+        self.theme_selection.set("Breeze")
+        self.theme_dropdown = ttk.OptionMenu(self.appearance, self.theme_selection, *self.display_themes, command = self.update_appearance)
+        self.theme_label = ttk.Label(self.appearance, text="Theme:")
+        self.theme_label.pack(side=tk.LEFT)
+        self.theme_dropdown.pack(side=tk.RIGHT, pady = 5)
+        # Seperator
+        self.seperator4 = ttk.Separator(self.options, orient='horizontal')
+        self.seperator4.pack(fill='x')
+
+        # Logging settings
 
 
 
+        
         self.root.mainloop()
 
+    # ============================
+    # Methods
+    # ============================
+    def update_appearance(self, *args):
+        self.root.resizable(self.scale_x_enabled.get(), self.scale_y_enabled.get())
+        if args:
+            self.style.theme_use(args[0].lower())
+            if args[0] == 'Equilux':
+                self.root.configure(bg='#464646')
+
     def paid_manager(self):
-        # if self.use_paid_list.get():
-        #     self.only_include_paid_checkbox.pack()
-        #     self.paid_button.pack()
-        #     self.paid_breadcrumbs.pack()
-        # else:
-        #     self.only_include_paid_checkbox.pack_forget()
-        #     self.only_include_paid.set(False)
-        #     self.paid_button.pack_forget()
-        #     self.paid_breadcrumbs.pack_forget()
-        #     if self.paid_path:
-        #         self.paid_breadcrumbs_txt.pack_forget()
-        #         self.paid_path = None
         if self.use_paid_list.get():
             self.paid_frame.pack()
         else:
@@ -175,7 +227,7 @@ class GUI():
     def set_inputs(self):
         if self.inputs_path != None:
             self.inputs_breadcrumbs.destroy()
-        self.inputs_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("all files", "*.*")))
+        self.inputs_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("tsv files","*.tsv"),("all files", "*.*")))
         self.inputs_breadcrumbs_txt = ttk.Label(self.inputs_breadcrumbs, text=self.inputs_path)
         self.inputs_breadcrumbs_txt.pack()
 
@@ -183,7 +235,7 @@ class GUI():
     def set_paid(self):
         if self.paid_path != None:
             self.paid_breadcrumbs.destroy()
-        self.paid_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("all files", "*.*")))
+        self.paid_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("tsv files","*.tsv"),("all files", "*.*")))
         self.paid_breadcrumbs_txt = ttk.Label(self.paid_breadcrumbs, text=self.paid_path)
         self.paid_breadcrumbs_txt.pack()
 
@@ -193,6 +245,26 @@ class GUI():
         self.output_path = filedialog.askdirectory()
         self.output_breadcrumbs_txt = ttk.Label(self.output_breadcrumbs, text=self.output_path)
         self.output_breadcrumbs_txt.pack()
+
+    def start(self):
+        output_option = self.catagories[self.display_catagories.index(self.output_option.get())]
+        if (self.inputs_path == None) or (self.inputs_path == ""):
+            tk.messagebox.showerror("Error", "Please enter an input list file path")
+            return
+        elif ((self.paid_path == None) or (self.paid_path == "")) and self.use_paid_list.get():
+            tk.messagebox.showerror("Error", "Please enter a paid list file path")
+            return
+        elif (self.output_path == None) or (self.output_path == ""):
+            tk.messagebox.showerror("Error", "Please select an output file path!")
+            return
+        elif output_option == 'Please select an output format':
+            tk.messagebox.showerror("Error", "Please select an output format!")
+            return
+
+        self.tab_control.hide(0)
+        self.tab_control.hide(1)
+        self.tab_control.select(2)
             
 
-Gui = GUI()
+if __name__ == "__main__":
+    Gui = GUI()
