@@ -68,7 +68,7 @@ class Distance(Main):
         for key, prof1 in Main.profiles.items():
             self.apothem = 15
             people = self.in_range(key)
-            while len(people) < 7:
+            while len(people) < 13:
                 self.apothem += 3
                 people = self.in_range(key)
         Main.profile[key]['matchs'] = people
