@@ -18,6 +18,7 @@ from main import Main
 
 class GUI(Main):
     def __init__(self):
+        super().__init__()
         # ============================
         # Setup
         # ============================
@@ -198,7 +199,16 @@ class GUI(Main):
         self.seperator4.pack(fill='x')
 
         # Logging settings
+        self.log = ttk.Frame(self.options)
+        self.log.pack()
+        self.log_label = ttk.Label(self.log, text="Logging Options", font= ("Microsoft JhengHei UI", 12))
+        self.log_label.pack(pady=5)
+        self.log_coming_soon = ttk.Label(self.log, text= "Coming Soon!").pack()
 
+
+        # ============================
+        # Output
+        # ============================
 
 
         
@@ -247,7 +257,6 @@ class GUI(Main):
         self.output_breadcrumbs_txt.pack()
 
     def start(self):
-        output_option = self.catagories[self.display_catagories.index(self.output_option.get())]
         if (self.inputs_path == None) or (self.inputs_path == ""):
             tk.messagebox.showerror("Error", "Please enter an input list file path")
             return
@@ -257,9 +266,22 @@ class GUI(Main):
         elif (self.output_path == None) or (self.output_path == ""):
             tk.messagebox.showerror("Error", "Please select an output file path!")
             return
-        elif output_option == 'Please select an output format':
+        elif self.output_option.get() == 'Please select an output format':
             tk.messagebox.showerror("Error", "Please select an output format!")
             return
+        
+
+        Main.input_csv = self.inputs_path
+        Main.output_csv = self.output_path
+        Main.pay_csv = self.paid_path
+
+        Main.use_tsv_inputs = self.use_tsv_inputs.get()
+        Main.use_tsv_paid = self.use_tsv_paid.get()
+        Main.use_paid_list = self.use_paid_list.get()
+        Main.only_include_paid = self.only_include_paid.get()
+        Main.output_option = self.output_option.get()
+
+        Main.convert(Main)
 
         self.tab_control.hide(0)
         self.tab_control.hide(1)

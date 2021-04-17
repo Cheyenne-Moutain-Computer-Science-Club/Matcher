@@ -1,7 +1,7 @@
 .vscode
 .idea
 .git
-.__pycache__
+__pycache__
 sampleset.csv
 GUI.py
 __pycache__/GUI.cpython-39.pyc
