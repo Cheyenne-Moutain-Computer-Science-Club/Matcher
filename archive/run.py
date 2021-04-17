@@ -19,9 +19,9 @@ from compile import Compile
 if __name__ == "__main__":
     Main = Main()
     GUI = GUI()
-    Lint = Lint()
-    Graph = Graph()
-    Distance = Distance()
-    Compile = Compile()
+    # Lint = Lint()
+    # Graph = Graph()
+    # Distance = Distance()
+    # Compile = Compile()
 
 

@@ -14,18 +14,17 @@ from main import Main
 class Distance(Main):
     def __init__(self):
         super().__init__()
-        self.in_range = []
-        self.range = [0,0]
-        self.apothem = 15
+        self.get_people()
 
-    def get_people(self, id):
+    def get_people(self):
         for key, prof1 in Main.profiles.items():
             self.apothem = 15
             people = self.in_range(key)
             while len(people) < 13:
                 self.apothem += 3
                 people = self.in_range(key)
-        Main.profile[key]['matchs'] = people
+            Main.profiles[key]['matchs'] = rd.sample(people, 10)
+        print('Matches Made')
 
     def in_range(self, di):
         people = []
