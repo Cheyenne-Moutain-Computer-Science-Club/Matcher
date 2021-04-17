@@ -10,6 +10,7 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import time
 import threading
+import concurrent.futures
 import convertions as cv
 import pandas as pd
 import random as rd
@@ -24,11 +25,11 @@ class Main():
     profiles = {}
     output = None
     input_csv = None
-    pay_csv = None
+    filter_csv = None
     use_tsv_inputs = None
-    use_tsv_paid = None
-    use_paid_list = None
-    only_include_paid = None
+    use_tsv_filtered = None
+    use_filtered_list = None
+    only_include_filtered = None
     output_option = None
     convertions = cv.convertions
     finished = False
@@ -42,15 +43,15 @@ class Main():
         else:
             self.inputs = pd.DataFrame(pd.read_csv(self.input_csv))
 
-        if self.use_paid_list:
+        if self.use_filtered_list:
             if self.use_tsv_inputs:
-                self.paid = pd.DataFrame(pd.read_csv(self.pay_csv, sep='\t'))
+                self.filtered = pd.DataFrame(pd.read_csv(self.filter_csv, sep='\t'))
             else:
-                self.paid = pd.DataFrame(pd.read_csv(self.pay_csv))
-            if self.only_include_paid:
+                self.filtered = pd.DataFrame(pd.read_csv(self.filter_csv))
+            if self.only_include_filtered:
                 drop_list = []
                 for index, row in self.inputs.iterrows():
-                    if row['Email Address'] in pd.merge(self.inputs, self.paid, indicator=True, how='outer').query('_merge=="left_only"').drop('_merge', axis=1).values:
+                    if row['Email Address'] in pd.merge(self.inputs, self.filtered, indicator=True, how='outer').query('_merge=="left_only"').drop('_merge', axis=1).values:
                         drop_list.append(index)
                 self.inputs = self.inputs.drop(drop_list)
 
@@ -121,7 +122,7 @@ class Distance(Main):
             while len(people) < 13:
                 self.apothem += 3
                 people = self.in_range(key)
-            Main.profiles[key]['matchs'] = rd.sample(people, 10)
+            Main.profiles[key]['matches'] = rd.sample(people, 10)
         print('Matches Made')
 
     def in_range(self, di):
@@ -142,15 +143,24 @@ class Compile(Main):
     def __init__(self):
         super().__init__()
         self.generate_output()
+        if Main.use_filtered_list:
+            self.filter_outputs()
 
     def generate_output(self):
         Main.output = pd.DataFrame({"Name": [], "Email Address": [], "Matches": []})
         for key, prof in Main.profiles.items():
             build_list = [Main.inputs.iloc[key]['Name'], Main.inputs.iloc[key]['Email Address'], [Main.inputs.iloc[x]['Name'] for x in prof['matches']]]
-        Main.output.loc[len(Main.inputs.index)] = build_list
-        print(Main.profiles)
+            # Main.output.loc[len(Main.inputs.index)] = build_list
+            Main.output.loc[key] = build_list
     
         print('Compiled')
+
+    def filter_outputs(self):
+        drop_list = []
+        for index, row in Main.output.iterrows():
+            if row['Email Address'] in pd.merge(Main.output, Main.filtered, indicator=True, how='outer').query('_merge=="left_only"').drop('_merge', axis=1).values:
+                drop_list.append(index)
+        Main.output = Main.output.drop(drop_list)
 
 
 class GUI(Main):
@@ -163,16 +173,16 @@ class GUI(Main):
         self.root = ThemedTk(theme="breeze")
         # self.root = ThemedTk(theme="equilux")
         self.root.title('Matcher')
-        self.root.geometry('650x550')
+        self.root.geometry('650x600')
         self.root.resizable(False, True)
         self.style = ttk.Style(self.root)
         # self.root.configure(bg='#464646')
 
         # IntVar setup
         self.use_tsv_inputs = tk.IntVar()
-        self.use_tsv_paid = tk.IntVar()
-        self.use_paid_list = tk.BooleanVar()
-        self.only_include_paid = tk.BooleanVar()
+        self.use_tsv_filtered = tk.IntVar()
+        self.use_filtered_list = tk.BooleanVar()
+        self.only_include_filtered = tk.BooleanVar()
         self.output_option = tk.StringVar()
         self.scale_x_enabled = tk.BooleanVar()
         self.scale_y_enabled = tk.BooleanVar()
@@ -182,7 +192,7 @@ class GUI(Main):
         # *Maybe Change to Main????
         # Other variable setup
         self.inputs_path = None
-        self.paid_path = None
+        self.filtered_path = None
         self.output_path = None
 
         # Tab control
@@ -208,12 +218,12 @@ class GUI(Main):
         self.inputs = ttk.Frame(self.menu)
         self.inputs.pack(pady=5)
         self.input_header = ttk.Label(self.inputs, 
-                                        text="Input CSV Settings",
+                                        text="Input Settings",
                                         font = ("Microsoft JhengHei UI", 12))
         self.input_header.pack()
         self.input_spacer = ttk.Label(self.inputs, text="")
         self.input_spacer.pack()
-        self.inputs_button = ttk.Button(self.inputs, text="Select Responses CSV", command=self.set_inputs)
+        self.inputs_button = ttk.Button(self.inputs, text="Select Responses", command=self.set_inputs)
         self.inputs_button.pack()
         self.inputs_breadcrumbs = ttk.Frame(self.inputs)
         self.inputs_breadcrumbs.pack()
@@ -231,46 +241,46 @@ class GUI(Main):
         self.seperator1 = ttk.Separator(self.menu, orient='horizontal')
         self.seperator1.pack(fill='x')
 
-        # Paid List
-        self.paid = ttk.Frame(self.menu)
-        self.paid.pack(pady=5)
-        self.paid_header = ttk.Label(self.paid, 
-                                        text="Paid List Settings",
+        # filtered List
+        self.filtered = ttk.Frame(self.menu)
+        self.filtered.pack(pady=5)
+        self.filtered_header = ttk.Label(self.filtered, 
+                                        text="Filter List Settings",
                                         font = ("Microsoft JhengHei UI", 12))
-        self.paid_header.pack()
-        self.paid_spacer = ttk.Label(self.paid, text="")
-        self.paid_spacer.pack()
-        self.paid_frame = ttk.Frame(self.paid)
-        self.use_paid_checkbox = ttk.Checkbutton(self.paid,
-                                                text="Use Paid List", 
-                                                variable=self.use_paid_list,
-                                                command= self.paid_manager)
-        self.use_paid_checkbox.pack()
+        self.filtered_header.pack()
+        self.filtered_spacer = ttk.Label(self.filtered, text="")
+        self.filtered_spacer.pack()
+        self.filtered_frame = ttk.Frame(self.filtered)
+        self.use_filtered_checkbox = ttk.Checkbutton(self.filtered,
+                                                text="Use Filter List", 
+                                                variable=self.use_filtered_list,
+                                                command= self.filtered_manager)
+        self.use_filtered_checkbox.pack()
         # Hidden Frame
-        self.paid_spacer2 = ttk.Label(self.paid_frame, text="")
-        self.paid_spacer2.pack(side="top")
+        self.filtered_spacer2 = ttk.Label(self.filtered_frame, text="")
+        self.filtered_spacer2.pack(side="top")
         # Button and Breadcrumbs
-        self.paid_button_frame = ttk.Frame(self.paid_frame)
-        self.paid_button_frame.pack()
-        self.paid_button = ttk.Button(self.paid_button_frame, text="Select Paid List", command=self.set_paid)
-        self.paid_button.pack()
-        self.paid_breadcrumbs = ttk.Frame(self.paid_button_frame)
-        self.paid_breadcrumbs.pack()
+        self.filtered_button_frame = ttk.Frame(self.filtered_frame)
+        self.filtered_button_frame.pack()
+        self.filtered_button = ttk.Button(self.filtered_button_frame, text="Select Filter", command=self.set_filtered)
+        self.filtered_button.pack()
+        self.filtered_breadcrumbs = ttk.Frame(self.filtered_button_frame)
+        self.filtered_breadcrumbs.pack()
         # Checkbox
-        self.only_include_paid_checkbox = ttk.Checkbutton(self.paid_frame,
-                                                text="Only include paid users in match lists", 
-                                                variable=self.only_include_paid)
-        self.only_include_paid_checkbox.pack()
+        self.only_include_filtered_checkbox = ttk.Checkbutton(self.filtered_frame,
+                                                text="Only include filtered users in match lists", 
+                                                variable=self.only_include_filtered)
+        self.only_include_filtered_checkbox.pack()
         # Radio Buttons
-        self.use_csv_radio = ttk.Radiobutton(self.paid_frame,
+        self.use_csv_radio = ttk.Radiobutton(self.filtered_frame,
                                                 value=0,
                                                 text="Use Comma Seperated Values (*.csv)", 
-                                                variable=self.use_tsv_paid)
+                                                variable=self.use_tsv_filtered)
         self.use_csv_radio.pack(side="left")
-        self.use_tsv_inputs_radio = ttk.Radiobutton(self.paid_frame,
+        self.use_tsv_inputs_radio = ttk.Radiobutton(self.filtered_frame,
                                                 value=1,
                                                 text="Use Tab Seperated Values (*.tsv)", 
-                                                variable=self.use_tsv_paid)
+                                                variable=self.use_tsv_filtered)
         self.use_tsv_inputs_radio.pack(side="right")
         # Seperator
         self.seperator2 = ttk.Separator(self.menu, orient='horizontal')
@@ -352,6 +362,8 @@ class GUI(Main):
         self.progress_bar = ttk.Progressbar(self.output_tab, orient='horizontal', length = 300, mode='determinate')
         self.progress_bar.pack()
 
+        self.info = ttk.Label(self.output_tab, text="Thank you for using the Matcher program! Designed with ❤ by CMCSC", font=("Microsoft JhengHei UI", 9)).pack(anchor='s')
+
         
         self.root.mainloop()
 
@@ -359,10 +371,14 @@ class GUI(Main):
     # Methods
     # ============================
     def save(self):
-        Main.save_output_as = filedialog.asksaveasfilename(initialdir = self.output_path,title = "Select file",filetypes = (("CSV file","*.csv"), ("all files","*.*")))
+        Main.save_output_as = filedialog.asksaveasfilename(initialdir = self.output_path,title = "Save File", filetypes = (('CSV file', "*.csv"),('TSV file', "*.tsv"),('TXT file', "*.txt"),("all files","*.*")))
         if Main.output_option == 'Comma Seperated Values (*.csv)':
-            Main.output.to_csv(f'{Main.save_output_as} + .csv')
-            print('YES')
+            Main.output.to_csv(f'{Main.save_output_as}.csv', index=False)
+        elif Main.output_option == 'Tab Seperated Values (*.tsv)':
+            Main.output.to_csv(f'{Main.save_output_as}.tsv', index=False, sep="\t")
+        elif Main.output_option == 'Text File (*.txt)':
+            Main.output.to_csv(f'{Main.save_output_as}.txt', header=None, index=None, sep=' ', mode='a')
+        self.root.destroy()
 
     def update_appearance(self, *args):
         self.root.resizable(self.scale_x_enabled.get(), self.scale_y_enabled.get())
@@ -371,15 +387,15 @@ class GUI(Main):
             if args[0] == 'Equilux':
                 self.root.configure(bg='#464646')
 
-    def paid_manager(self):
-        if self.use_paid_list.get():
-            self.paid_frame.pack()
+    def filtered_manager(self):
+        if self.use_filtered_list.get():
+            self.filtered_frame.pack()
         else:
-            self.paid_frame.pack_forget()
-            self.only_include_paid.set(False)
-            if self.paid_path:
-                self.paid_breadcrumbs_txt.pack_forget()
-                self.paid_path = None
+            self.filtered_frame.pack_forget()
+            self.only_include_filtered.set(False)
+            if self.filtered_path:
+                self.filtered_breadcrumbs_txt.pack_forget()
+                self.filtered_path = None
 
     def set_inputs(self):
         if self.inputs_path != None:
@@ -389,12 +405,12 @@ class GUI(Main):
         self.inputs_breadcrumbs_txt.pack()
 
 
-    def set_paid(self):
-        if self.paid_path != None:
-            self.paid_breadcrumbs.destroy()
-        self.paid_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("tsv files","*.tsv"),("all files", "*.*")))
-        self.paid_breadcrumbs_txt = ttk.Label(self.paid_breadcrumbs, text=self.paid_path)
-        self.paid_breadcrumbs_txt.pack()
+    def set_filtered(self):
+        if self.filtered_path != None:
+            self.filtered_breadcrumbs.destroy()
+        self.filtered_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("csv files","*.csv"),("tsv files","*.tsv"),("all files", "*.*")))
+        self.filtered_breadcrumbs_txt = ttk.Label(self.filtered_breadcrumbs, text=self.filtered_path)
+        self.filtered_breadcrumbs_txt.pack()
 
     def set_output(self):
         if self.output_path != None:
@@ -407,8 +423,8 @@ class GUI(Main):
         if (self.inputs_path == None) or (self.inputs_path == ""):
             tk.messagebox.showerror("Error", "Please enter an input list file path")
             return
-        elif ((self.paid_path == None) or (self.paid_path == "")) and self.use_paid_list.get():
-            tk.messagebox.showerror("Error", "Please enter a paid list file path")
+        elif ((self.filtered_path == None) or (self.filtered_path == "")) and self.use_filtered_list.get():
+            tk.messagebox.showerror("Error", "Please enter a filtered list file path")
             return
         elif (self.output_path == None) or (self.output_path == ""):
             tk.messagebox.showerror("Error", "Please select an output file path!")
@@ -420,29 +436,31 @@ class GUI(Main):
 
         Main.input_csv = self.inputs_path
         # Main.output_csv = self.output_path
-        Main.pay_csv = self.paid_path
+        Main.filter_csv = self.filtered_path
 
         Main.use_tsv_inputs = self.use_tsv_inputs.get()
-        Main.use_tsv_paid = self.use_tsv_paid.get()
-        Main.use_paid_list = self.use_paid_list.get()
-        Main.only_include_paid = self.only_include_paid.get()
+        Main.use_tsv_filtered = self.use_tsv_filtered.get()
+        Main.use_filtered_list = self.use_filtered_list.get()
+        Main.only_include_filtered = self.only_include_filtered.get()
         Main.output_option = self.output_option.get()
 
-        Main.convert()
+        self.x = threading.Thread(target=self.progress_bar_func)
+        self.x.start()
 
-        self.tab_control.hide(0)
-        self.tab_control.hide(1)
-        self.tab_control.select(2)
+        Main.convert()
 
         self.Lint = Lint()
         self.Graph = Graph()
         self.Distance = Distance()
         self.Compile = Compile()
 
-        self.x = threading.Thread(target=self.progress_bar_func)
-        self.x.start()
 
     def progress_bar_func(self):
+
+        self.tab_control.hide(0)
+        self.tab_control.hide(1)
+        self.tab_control.select(2)
+
         while True:
             self.progress_bar['value'] += 1
             self.root.update_idletasks()
