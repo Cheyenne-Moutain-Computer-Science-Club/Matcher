@@ -6,3 +6,7 @@ sampleset.csv
 GUI.py
 __pycache__/GUI.cpython-39.pyc
 __pycache__/main.cpython-39.pyc
+archive
+output
+convert.json
+venv

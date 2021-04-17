@@ -1,19 +1,18 @@
 # =====================
 # Package imports
 # =====================
+import sys
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-from tkinter import font
 from ttkthemes import ThemedTk
-from PIL import Image, ImageTk
 import tkinter as tk
 import time
 import threading
-import concurrent.futures
-import convertions as cv
 import pandas as pd
 import random as rd
+import json
+import os
 # =====================
 # Module imports
 # =====================
@@ -31,8 +30,8 @@ class Main():
     use_filtered_list = None
     only_include_filtered = None
     output_option = None
-    convertions = cv.convertions
     finished = False
+    convertions = None
 
     def __init__(self):
         pass
@@ -60,7 +59,6 @@ class Main():
             
 
 class Lint(Main):
-
     def __init__(self):
         super().__init__()
         self.convert()
@@ -169,14 +167,22 @@ class GUI(Main):
         # ============================
         # Setup
         # ============================
-        # self.root = ThemedTk(theme="arc")
+        def resource_path(relative_path):
+            """ Get absolute path to resource, works for dev and for PyInstaller """
+            try:
+                # PyInstaller creates a temp folder and stores path in _MEIPASS
+                base_path = sys._MEIPASS
+            except Exception:
+                base_path = os.path.abspath(".")
+
+            return os.path.join(base_path, relative_path)
+
         self.root = ThemedTk(theme="breeze")
-        # self.root = ThemedTk(theme="equilux")
         self.root.title('Matcher')
         self.root.geometry('650x600')
+        self.root.iconbitmap(resource_path(r'radio.ico'))
         self.root.resizable(False, True)
         self.style = ttk.Style(self.root)
-        # self.root.configure(bg='#464646')
 
         # IntVar setup
         self.use_tsv_inputs = tk.IntVar()
@@ -194,6 +200,7 @@ class GUI(Main):
         self.inputs_path = None
         self.filtered_path = None
         self.output_path = None
+        self.convert_path = None
 
         # Tab control
         self.tab_control = ttk.Notebook(self.root, width = 650)
@@ -214,7 +221,7 @@ class GUI(Main):
         # Main Menu
         # ============================
 
-        # Inputs CSV
+        # Inputs
         self.inputs = ttk.Frame(self.menu)
         self.inputs.pack(pady=5)
         self.input_header = ttk.Label(self.inputs, 
@@ -350,7 +357,22 @@ class GUI(Main):
         self.log.pack()
         self.log_label = ttk.Label(self.log, text="Logging Options", font= ("Microsoft JhengHei UI", 12))
         self.log_label.pack(pady=5)
-        self.log_coming_soon = ttk.Label(self.log, text= "Coming Soon!").pack()
+        self.log_coming_soon = ttk.Label(self.log, text= "Coming Soon!").pack(pady=5)
+
+        self.seperator5 = ttk.Separator(self.options, orient='horizontal')
+        self.seperator5.pack(fill='x')
+
+        # Convertions
+        self.convertions = ttk.Frame(self.options)
+        self.convertions.pack()
+        self.convertions_label = ttk.Label(self.convertions, text="Question Convertion Options",
+                                          font=("Microsoft JhengHei UI", 12))
+        self.convertions_label.pack(pady=5)
+        self.convertions_button_label = ttk.Label(self.convertions, text="Converstions File Location:").pack()
+        self.convert_button = ttk.Button(self.convertions, text="Select JSON", command=self.set_convertions)
+        self.convert_button.pack(pady=5)
+        self.convert_breadcrumbs = ttk.Frame(self.convertions)
+        self.convert_breadcrumbs.pack()
 
 
         # ============================
@@ -404,6 +426,13 @@ class GUI(Main):
         self.inputs_breadcrumbs_txt = ttk.Label(self.inputs_breadcrumbs, text=self.inputs_path)
         self.inputs_breadcrumbs_txt.pack()
 
+    def set_convertions(self):
+        if self.convert_path != None:
+            self.convert_breadcrumbs.destroy()
+        self.convert_path = filedialog.askopenfilename(initialdir = r"C:",title = "Select file",filetypes = (("JSON files","*.json"), ("all files", "*.*")))
+        self.convert_breadcrumbs_txt = ttk.Label(self.convert_breadcrumbs, text=self.convert_path)
+        self.convert_breadcrumbs_txt.pack()
+
 
     def set_filtered(self):
         if self.filtered_path != None:
@@ -432,12 +461,12 @@ class GUI(Main):
         elif self.output_option.get() == 'Please select an output format':
             tk.messagebox.showerror("Error", "Please select an output format!")
             return
-        
 
         Main.input_csv = self.inputs_path
         # Main.output_csv = self.output_path
         Main.filter_csv = self.filtered_path
-
+        with open(self.convert_path) as f:
+            Main.convertions = json.load(f)
         Main.use_tsv_inputs = self.use_tsv_inputs.get()
         Main.use_tsv_filtered = self.use_tsv_filtered.get()
         Main.use_filtered_list = self.use_filtered_list.get()
