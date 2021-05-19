@@ -1,0 +1,26 @@
+{
+    "output_cols": {
+        "Name": [], 
+        "Email": [], 
+        "Matches": [],
+        "AntiMatches": [],
+        "Grade Matches": [],
+        "Grade Anti-Matches": [],
+        "Coordinates": []
+    },
+    "outputs": {
+        "matches": 5,
+        "antimatches": 5,
+        "gradematches": 5,
+        "gradeantimatches": 5
+    },
+    "debug": {
+        "plot": true
+    },
+    "settings": {
+        "conversions": "convert.json",
+        "output_form": "Comma Separated Values (*.csv)",
+        "input": "C:/Users/micha/OneDrive/Documents/GitHub/Matcher/inputs/DECA.csv",
+        "use_CLI": false
+    }
+}
